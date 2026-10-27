@@ -136,8 +136,12 @@ if submitted:
             if mode == "자동차":
                 st.caption("자동차 시간은 입력한 값이에요. 출발 전 카카오맵에서 교통 상황을 확인해 주세요.")
 
-        except requests.HTTPError as e:
-            if e.response is not None and e.response.status_code == 429:
+       except requests.HTTPError as e:
+    status = e.response.status_code if e.response is not None else 0
+    detail = e.response.text[:500] if e.response is not None else str(e)
+
+    st.error(f"카카오 API HTTP 오류: {status}")
+    st.code(detail)
                 st.error("카카오 API 무료 사용량 한도에 도달했어요. 나중에 다시 시도해 주세요.")
             elif e.response is not None and e.response.status_code in (401, 403):
                 st.error("API 키가 잘못됐거나 카카오맵 API 설정이 완료되지 않았어요.")
