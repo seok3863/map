@@ -145,3 +145,40 @@ if submitted:
                 st.error("카카오 API 요청에 실패했어요. 잠시 후 다시 시도해 주세요.")
         except Exception as e:
             st.error(f"계산 중 문제가 발생했어요: {e}")
+import streamlit as st
+import requests
+
+key = st.secrets["KAKAO_REST_API_KEY"].strip()
+
+def find_address(address):
+    r = requests.get(
+        "https://dapi.kakao.com/v2/local/search/address.json",
+        headers={"Authorization": f"KakaoAK {key}"},
+        params={"query": address},
+        timeout=15,
+    )
+
+    st.write("검색 상태:", r.status_code)
+
+    if r.status_code != 200:
+        st.error(f"API 오류: {r.status_code}")
+        st.code(r.text)
+        return None
+
+    data = r.json().get("documents", [])
+
+    if not data:
+        st.warning(f"주소 검색 결과가 없습니다: {address}")
+        return None
+
+    place = data[0]
+    st.write("검색된 주소:", place.get("address_name"))
+    st.write("경도:", place["x"], "/ 위도:", place["y"])
+    return place
+
+start = st.text_input("출발지", "수원역")
+school = st.text_input("학교 주소", "학교의 정확한 도로명 주소")
+
+if st.button("주소 검색 테스트"):
+    find_address(start)
+    find_address(school)
